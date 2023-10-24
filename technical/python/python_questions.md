@@ -11,7 +11,7 @@
 </details>
 
 <details>
-<summary>What are the mutale built in types?</summary>
+<summary>What are the immutale built in types?</summary>
 
 - Numbers
 - Strings
@@ -19,7 +19,7 @@
 </details>
 
 <details>
-<summary>What are the immutale built in types?</summary>
+<summary>What are the mutale built in types?</summary>
 
 - List
 - Dictionaries
