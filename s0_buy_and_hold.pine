@@ -1,0 +1,17 @@
+//@version=5
+
+strategy('s0_buy_and_hold', overlay=true, initial_capital=100000, currency='USD', default_qty_type=strategy.percent_of_equity,
+  default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.0, calc_on_order_fills=true)
+
+// === BACKTEST RANGE ===
+Start = input.time(defval = timestamp("01 Jan 2008 06:00 +0000"), title = "Backtest Start Date", group = "backtest window")
+Finish = input.time(defval = timestamp("01 Jan 2024 00:00 +0000"), title = "Backtest End Date", group = "backtest window")
+
+var bool can_long=true
+
+if time>=Start and can_long
+    strategy.entry('Long', strategy.long)
+    can_long:=false
+
+if time>=Finish
+    strategy.close('Long')
