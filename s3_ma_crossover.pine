@@ -7,6 +7,21 @@ strategy("s3 MA Crossover", overlay=true, default_qty_type=strategy.percent_of_e
 Start = input.time(defval = timestamp("01 Jan 2008 06:00 +0000"), title = "Backtest Start Date", group = "backtest window")
 Finish = input.time(defval = timestamp("01 Jan 2024 00:00 +0000"), title = "Backtest End Date", group = "backtest window")
 
+useTightStop = input.bool(title='Use Fixed Percentage for Initial Stop?', defval=false, group = "order entry",
+  tooltip = "'Keep your losers small and let winners run' is the saying.  This will allow you to use a tight initial stop
+  until the lower Bollinger Band catches up.")
+percStop = input.int(title="Stop", defval=8, group = "order entry", inline = "perc")
+
+// Trailing Stop
+useTrailingStop = input.bool(title='Use Trailing Stop?', defval=true, group = "Trailing Stop",
+  tooltip = "'Keep your losers small and let winners run' is the saying.  This will allow you to use a tight initial stop
+  until the lower Bollinger Band catches up.")
+trailingStopPercent = input.int(defval=8, title="Trailing stop percent", minval=1, group = "Trailing Stop", inline="perc")  
+  // Declare trailing price variable (stores our trail stop value)
+var float trailPrice    = -1
+float next_trailPrice   = na
+
+
 // Get user input
 emaLength1 = input.int(title="EMA #1 Length", defval=50)
 emaLength2 = input.int(title="EMA #2 Length", defval=100)
@@ -31,9 +46,33 @@ bool in_time_range=time<Finish and time>Start
 inPosition = strategy.position_size > 0
 bgcolor(inPosition?color.new(color.green,70):na)
 
+
+if inPosition
+    next_trailPrice:=close*(1-0.01*trailingStopPercent)
+    label.new(bar_index, high, "close:"+str.tostring(close) + " next_trailPrice:"+str.tostring(next_trailPrice)+ " before trailPrice: "+str.tostring(trailPrice) , color=color.black, textcolor=color.white, textalign=text.align_left)
+    trailPrice:=useTrailingStop? math.max(next_trailPrice,trailPrice): -1
+    label.new(bar_index, high, "trailPrice:"+str.tostring(trailPrice), color=color.black, textcolor=color.white, textalign=text.align_left)
+else
+    trailPrice:=-1
+
+// == STOP AND PRICE LEVELS ==
+// Configure initial stop level
+
+stopLevel = strategy.position_avg_price - (strategy.position_avg_price * percStop/100)
+posStop = stopLevel
+
+stop = useTightStop ? posStop : -1
+stop:= math.max(trailPrice, stop) 
+
+plot(inPosition ? stop : na, style=plot.style_linebr, color=color.new(color.red, 40), linewidth = 1, title = "Stop Levels", trackprice=false)
+
+plot(inPosition ? stop : na, style=plot.style_linebr, color=color.new(color.red, 40), linewidth = 1, title = "Stop Levels", trackprice=false)
+
+sellSignal = inPosition and ((close <= stop) or crossUnder)
+
 if crossOver and in_time_range and strategy.position_size == 0
     strategy.entry(id="Buy", direction=strategy.long)
-if crossUnder and in_time_range and strategy.position_size > 0
+if sellSignal and in_time_range 
     strategy.close(id="Buy")
 
 if time>=Finish and strategy.position_size > 0
