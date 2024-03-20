@@ -1,7 +1,7 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © ZenAndTheArtOfTrading
 // @version=5
-strategy("s4 MA Crossover", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+strategy("s3 MA Crossover", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
 
 // === BACKTEST RANGE ===
 Start = input.time(defval = timestamp("01 Jan 2008 06:00 +0000"), title = "Backtest Start Date", group = "backtest window")
